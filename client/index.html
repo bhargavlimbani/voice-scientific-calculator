@@ -1,27 +1,76 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Voice Scientific Calculator</title>
+    <title>AI Calculator</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>🎙️ Voice Scientific Calculator</h1>
+    <div class="main-layout">
 
-        <button id="micBtn">🎤 Start Speaking</button>
+        <!-- LEFT -->
+        <div class="left">
+            <h1>Voice Based scientific Calculator</h1>
 
-        <div class="output">
-            <h3>Recognized Text:</h3>
+            <input id="inputBox" placeholder="Type or speak..." />
+            <button id="micBtn">🎤 Speak</button>
+            <button onclick="clearHistory()">Clear History</button>
+
+            <div class="buttons">
+                <button onclick="append('7')">7</button>
+                <button onclick="append('8')">8</button>
+                <button onclick="append('9')">9</button>
+                <button onclick="append('/')">/</button>
+
+                <button onclick="append('4')">4</button>
+                <button onclick="append('5')">5</button>
+                <button onclick="append('6')">6</button>
+                <button onclick="append('*')">*</button>
+
+                <button onclick="append('1')">1</button>
+                <button onclick="append('2')">2</button>
+                <button onclick="append('3')">3</button>
+                <button onclick="append('-')">-</button>
+
+                <button onclick="append('0')">0</button>
+                <button onclick="append('.')">.</button>
+                <button onclick="calculateInput()">=</button>
+                <button onclick="append('+')">+</button>
+
+                <button onclick="append('sin ')">sin</button>
+                <button onclick="append('cos ')">cos</button>
+                <button onclick="append('tan ')">tan</button>
+                <button onclick="append('sqrt ')">√</button>
+
+                <button onclick="append('log ')">log</button>
+                <button onclick="append('ln ')">ln</button>
+                <button onclick="append('square ')">x²</button>
+                <button onclick="append('cube ')">x³</button>
+
+                <button onclick="clearInput()">C</button>
+                
+            </div>
+        </div>
+        <h2>History</h2>
+        <div id="history"></div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <h3>Recognized Text</h3>
             <p id="voiceText">---</p>
 
-            <h3>Result:</h3>
+            <h3>Result</h3>
             <p id="result">---</p>
         </div>
+
     </div>
 
-    <script src="js/voice.js"></script>
-    <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/voice.js"></script>
+
 </body>
+
 </html>

@@ -28,12 +28,11 @@ def convert_number_words(text):
 # ---------------- CLEAN INPUT ----------------
 
 def clean_text(text):
-
     text = text.lower()
 
-    # remove unnecessary words
     remove_words = [
-        "calculate", "what is", "find", "of", "the", "please"
+        "calculate", "what is", "find", "please",
+        "the", "value"
     ]
 
     for w in remove_words:
@@ -42,74 +41,104 @@ def clean_text(text):
     return text.strip()
 
 
+# ---------------- AI NORMALIZER ----------------
+
+def normalize_sentence(expr):
+
+    expr = expr.lower()
+
+    expr = expr.replace("plus", "+")
+    expr = expr.replace("minus", "-")
+    expr = expr.replace("times", "*")
+    expr = expr.replace("multiplied by", "*")
+    expr = expr.replace("into", "*")
+    expr = expr.replace("divided by", "/")
+
+    # brackets (AI support)
+    expr = expr.replace("open bracket", "(")
+    expr = expr.replace("close bracket", ")")
+
+    return expr
+
+
 # ---------------- PROCESS EXPRESSION ----------------
 
 def process_expression(expr):
 
+    expr = normalize_sentence(expr)
     expr = clean_text(expr)
     expr = convert_number_words(expr)
 
-    # ---------------- SMART NLP (NEW AI LOGIC) ----------------
+    expr = expr.replace("of", "")
 
-    # add five and ten → 5 + 10
-    expr = re.sub(r"add (\d+) and (\d+)", r"\1 + \2", expr)
+    # ---------------- ROOT ----------------
+    expr = re.sub(r"square\s*root\s*(\d+(?:\.\d+)?)", r"math.sqrt(\1)", expr)
+    expr = re.sub(r"sqrt\s*(\d+(?:\.\d+)?)", r"math.sqrt(\1)", expr)
 
-    # subtract 5 from 10 → 10 - 5
-    expr = re.sub(r"subtract (\d+) from (\d+)", r"\2 - \1", expr)
+    # ---------------- AI PHRASES ----------------
+    expr = re.sub(r"square of (\d+(?:\.\d+)?)", r"(\1**2)", expr)
+    expr = re.sub(r"cube of (\d+(?:\.\d+)?)", r"(\1**3)", expr)
+    expr = re.sub(r"log of (\d+(?:\.\d+)?)", r"math.log10(\1)", expr)
 
-    # multiply 5 and 3 → 5 * 3
-    expr = re.sub(r"multiply (\d+) and (\d+)", r"\1 * \2", expr)
+    # ---------------- SMART NLP ----------------
+    expr = re.sub(r"add (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?)", r"\1 + \2", expr)
+    expr = re.sub(r"subtract (\d+(?:\.\d+)?) from (\d+(?:\.\d+)?)", r"\2 - \1", expr)
+    expr = re.sub(r"multiply (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?)", r"\1 * \2", expr)
+    expr = re.sub(r"divide (\d+(?:\.\d+)?) by (\d+(?:\.\d+)?)", r"\1 / \2", expr)
 
-    # divide 10 by 2 → 10 / 2
-    expr = re.sub(r"divide (\d+) by (\d+)", r"\1 / \2", expr)
+    # ---------------- TRIG ----------------
+    expr = re.sub(r"\b(sin|sine)\s*(\d+(?:\.\d+)?)", r"math.sin(math.radians(\2))", expr)
+    expr = re.sub(r"\b(cos|cosine)\s*(\d+(?:\.\d+)?)", r"math.cos(math.radians(\2))", expr)
+    expr = re.sub(r"\b(tan|tangent)\s*(\d+(?:\.\d+)?)", r"math.tan(math.radians(\2))", expr)
 
-    # ---------------- BASIC OPERATORS ----------------
+    # ---------------- INVERSE TRIG ----------------
+    expr = re.sub(r"asin\s*(\d+(?:\.\d+)?)", r"math.degrees(math.asin(\1))", expr)
+    expr = re.sub(r"acos\s*(\d+(?:\.\d+)?)", r"math.degrees(math.acos(\1))", expr)
+    expr = re.sub(r"atan\s*(\d+(?:\.\d+)?)", r"math.degrees(math.atan(\1))", expr)
 
-    expr = expr.replace("plus", "+")
-    expr = expr.replace("add", "+")
-    expr = expr.replace("minus", "-")
-    expr = expr.replace("subtract", "-")
+    # ---------------- LOG ----------------
+    expr = re.sub(r"\blog\s*(\d+(?:\.\d+)?)", r"math.log10(\1)", expr)
+    expr = re.sub(r"\bln\s*(\d+(?:\.\d+)?)", r"math.log(\1)", expr)
 
-    expr = expr.replace("multiplied by", "*")
-    expr = expr.replace("multiply", "*")
-    expr = expr.replace("times", "*")
-    expr = expr.replace("into", "*")
-    expr = expr.replace("x", "*")
+    # ---------------- EXP ----------------
+    expr = re.sub(r"e\s*power\s*(\d+(?:\.\d+)?)", r"math.exp(\1)", expr)
+    expr = re.sub(r"exp\s*(\d+(?:\.\d+)?)", r"math.exp(\1)", expr)
 
-    expr = expr.replace("divided by", "/")
-    expr = expr.replace("divide", "/")
+    # ---------------- FACTORIAL ----------------
+    expr = re.sub(r"(\d+)\s*factorial", r"math.factorial(\1)", expr)
+
+    # ---------------- POWER ----------------
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*power\s*(\d+(?:\.\d+)?)", r"(\1**\2)", expr)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*to the power of\s*(\d+(?:\.\d+)?)", r"(\1**\2)", expr)
+
+    expr = re.sub(r"\bsquare\s*(\d+(?:\.\d+)?)", r"(\1**2)", expr)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*square\b", r"(\1**2)", expr)
+
+    expr = re.sub(r"\bcube\s*(\d+(?:\.\d+)?)", r"(\1**3)", expr)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*cube\b", r"(\1**3)", expr)
+
+    # ---------------- MODULUS ----------------
+    expr = re.sub(r"(\d+)\s*(mod|modulus)\s*(\d+)", r"(\1%\3)", expr)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*%\s*(\d+(?:\.\d+)?)", r"(\1%\2)", expr)
+
+    # ---------------- ABS ----------------
+    expr = re.sub(r"absolute\s*(-?\d+(?:\.\d+)?)", r"abs(\1)", expr)
+    expr = re.sub(r"abs\s*(-?\d+(?:\.\d+)?)", r"abs(\1)", expr)
+
+    # ---------------- CONSTANT MULTIPLY ----------------
+    expr = re.sub(r"(\d+)\s*pi", r"(\1*math.pi)", expr)
+    expr = re.sub(r"(\d+)\s*e", r"(\1*math.e)", expr)
+
+    # ---------------- OPERATORS ----------------
+    expr = expr.replace(" x ", " * ")
     expr = expr.replace("over", "/")
 
     # ---------------- CONSTANTS ----------------
-
     expr = expr.replace("pi", str(math.pi))
     expr = expr.replace("e", str(math.e))
 
-    # ---------------- SCIENTIFIC ----------------
-
-    expr = re.sub(r"sin (\d+)", r"math.sin(math.radians(\1))", expr)
-    expr = re.sub(r"sine (\d+)", r"math.sin(math.radians(\1))", expr)
-
-    expr = re.sub(r"cos (\d+)", r"math.cos(math.radians(\1))", expr)
-    expr = re.sub(r"cosine (\d+)", r"math.cos(math.radians(\1))", expr)
-
-    expr = re.sub(r"tan (\d+)", r"math.tan(math.radians(\1))", expr)
-
-    expr = re.sub(r"log (\d+)", r"math.log10(\1)", expr)
-    expr = re.sub(r"ln (\d+)", r"math.log(\1)", expr)
-
-    expr = re.sub(r"sqrt (\d+)", r"math.sqrt(\1)", expr)
-    expr = re.sub(r"square root (\d+)", r"math.sqrt(\1)", expr)
-
-    expr = re.sub(r"(\d+) factorial", r"math.factorial(\1)", expr)
-
-    # ---------------- POWER ----------------
-
-    expr = re.sub(r"(\d+)\s*power\s*(\d+)", r"(\1**\2)", expr)
-
-    expr = re.sub(r"(\d+) square (\d+)", r"(\1**\2)", expr)
-    expr = re.sub(r"square (\d+)", r"(\1**2)", expr)
-    expr = re.sub(r"cube (\d+)", r"(\1**3)", expr)
+    # clean spaces
+    expr = re.sub(r"\s+", " ", expr)
 
     return expr
 
@@ -121,25 +150,18 @@ def calculate_expression(expr):
     try:
         expr = expr.lower()
 
-        # remove extra words
-        expr = expr.replace("calculate", "")
-        expr = expr.replace("what is", "")
-        expr = expr.replace("find", "")
-        expr = expr.replace("of", "")
-
-        # power fix (IMPORTANT)
-        expr = re.sub(r"(\d+)\s*power\s*(\d+)", r"(\1**\2)", expr)
         expr = process_expression(expr)
 
         print("Converted Expression:", expr)
 
-        result = eval(expr, {"math": math})
+        result = eval(expr, {"__builtins__": None}, {"math": math, "abs": abs})
 
         return result
 
     except Exception as e:
         print("ERROR:", e)
         return "Invalid Expression"
+
 
 # ---------------- ROUTES ----------------
 
