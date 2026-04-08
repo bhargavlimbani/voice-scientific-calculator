@@ -16,8 +16,9 @@ recognition.onresult = function(event) {
 
     document.getElementById("voiceText").innerText = transcript;
 
+    document.getElementById("inputBox").value = transcript;
+
     console.log("Sending:", transcript);
 
     sendToBackend(transcript);
-
 };
