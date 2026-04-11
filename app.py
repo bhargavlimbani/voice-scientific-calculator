@@ -305,7 +305,8 @@ def process_expression(expr):
     expr = re.sub(r"(\d+)\s*e", r"(\1*math.e)", expr)
 
     # ---------------- IMPLICIT MULTIPLICATION ----------------
-    expr = re.sub(r"(\d)\(", r"\1*(", expr)           
+    # Only insert between a standalone number and "(" (avoid breaking log10(), etc.)
+    expr = re.sub(r"(?<![A-Za-z0-9_\.])(\d+(?:\.\d+)?)\s*\(", r"\1*(", expr)
     expr = re.sub(r"\)(\d)", r")*\1", expr)           
     expr = re.sub(r"\)\(", r")*(", expr)              
 
@@ -317,8 +318,9 @@ def process_expression(expr):
     expr = expr.replace("over", "/")
 
     # ---------------- CONSTANTS ----------------
-    expr = expr.replace("pi", str(math.pi))
-    expr = expr.replace("e", str(math.e))
+    # Replace only standalone constants so we don't corrupt words like "percent"
+    expr = re.sub(r"\bpi\b", str(math.pi), expr)
+    expr = re.sub(r"\be\b", str(math.e), expr)
     
     # ---------------- PERMUTATION & COMBINATION ----------------
 
