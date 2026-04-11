@@ -15,6 +15,7 @@
             <h1>Voice Based scientific Calculator</h1>
 
             <input id="inputBox" placeholder="Type or speak..." />
+            <button onclick="backspace()">⌫</button>
             <button id="micBtn">🎤 Speak</button>
             <button onclick="clearHistory()">Clear History</button>
 
@@ -23,6 +24,7 @@
                 <button onclick="append('8')">8</button>
                 <button onclick="append('9')">9</button>
                 <button onclick="append('/')">/</button>
+                
 
                 <button onclick="append('4')">4</button>
                 <button onclick="append('5')">5</button>
@@ -48,9 +50,20 @@
                 <button onclick="append('ln ')">ln</button>
                 <button onclick="append('square ')">x²</button>
                 <button onclick="append('cube ')">x³</button>
+                <button onclick="append('(')">(</button>
+                <button onclick="append(')')">)</button>
+                <button onclick="append('%')">%</button>
+                <button onclick="append('mod ')">mod</button>
+
+                <button onclick="append('pi')">π</button>
+                <button onclick="append('e')">e</button>
+
+                <button onclick="append('exp ')">exp</button>
+                <button onclick="append('abs ')">abs</button>
+                <button onclick="append('power ')">xʸ</button>
 
                 <button onclick="clearInput()">C</button>
-                
+
             </div>
         </div>
         <h2>History</h2>

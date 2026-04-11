@@ -68,15 +68,13 @@ button:hover {
 
 /* History Box */
 #history {
-    margin-top: 15px;
-    max-height: 180px;
-    overflow-y: auto;
-    background: #1e1e2f;
-    padding: 10px;
-    border-radius: 10px;
+    background: #2f3542;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* Scrollbar (nice touch 🔥) */
+
 #history::-webkit-scrollbar {
     width: 6px;
 }

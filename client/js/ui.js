@@ -29,7 +29,7 @@ function displayResult(result) {
     const speech = new SpeechSynthesisUtterance("The result is " + result);
     window.speechSynthesis.speak(speech);
 
-    // ✅ Save to history
+   
     saveHistory(input, result);
 }
 
