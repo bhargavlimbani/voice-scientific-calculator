@@ -62,7 +62,6 @@ def normalize_sentence(expr):
 
 
 # ---------------- PROCESS EXPRESSION ----------------
-
 def process_expression(expr):
 
     expr = normalize_sentence(expr)
@@ -87,9 +86,9 @@ def process_expression(expr):
     expr = re.sub(r"divide (\d+(?:\.\d+)?) by (\d+(?:\.\d+)?)", r"\1 / \2", expr)
 
     # ---------------- TRIG ----------------
-    expr = re.sub(r"\b(sin|sine)\s*(\d+(?:\.\d+)?)", r"math.sin(math.radians(\2))", expr)
-    expr = re.sub(r"\b(cos|cosine)\s*(\d+(?:\.\d+)?)", r"math.cos(math.radians(\2))", expr)
-    expr = re.sub(r"\b(tan|tangent)\s*(\d+(?:\.\d+)?)", r"math.tan(math.radians(\2))", expr)
+    expr = re.sub(r"\b(sin|sine)\s*(-?\d+(?:\.\d+)?)", r"math.sin(math.radians(\2))", expr)
+    expr = re.sub(r"\b(cos|cosine)\s*(-?\d+(?:\.\d+)?)", r"math.cos(math.radians(\2))", expr)
+    expr = re.sub(r"\b(tan|tangent)\s*(-?\d+(?:\.\d+)?)", r"math.tan(math.radians(\2))", expr)
 
     # ---------------- INVERSE TRIG ----------------
     expr = re.sub(r"asin\s*(\d+(?:\.\d+)?)", r"math.degrees(math.asin(\1))", expr)
@@ -118,8 +117,28 @@ def process_expression(expr):
     expr = re.sub(r"(\d+(?:\.\d+)?)\s*cube\b", r"(\1**3)", expr)
 
     # ---------------- MODULUS ----------------
-    expr = re.sub(r"(\d+)\s*(mod|modulus)\s*(\d+)", r"(\1%\3)", expr)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*(mod|modulus)\s*(\d+(?:\.\d+)?)", r"(\1%\3)", expr)
     expr = re.sub(r"(\d+(?:\.\d+)?)\s*%\s*(\d+(?:\.\d+)?)", r"(\1%\2)", expr)
+
+    # ---------------- PERCENTAGE ----------------
+    # 1. x% of y  → (x/100) * y
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*%\s*of\s*(\d+(?:\.\d+)?)",r"((\1/100)*\2)",expr)
+
+    # 2. a + b%  → a + (a*b/100)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*\+\s*(\d+(?:\.\d+)?)%",r"(\1 + (\1*\2/100))",expr)
+
+    # 3. a - b%  → a - (a*b/100)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)%",r"(\1 - (\1*\2/100))",expr)
+
+    # 4. a * b%  → a * (b/100)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*\*\s*(\d+(?:\.\d+)?)%",r"(\1 * (\2/100))",expr)    
+    # 5. a / b%  → a / (b/100)
+    expr = re.sub(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)%",r"(\1 / (\2/100))",expr)
+
+    # 6. standalone → b% = b/100
+    expr = re.sub(r"(\d+(?:\.\d+)?)%",r"(\1/100)",expr)
+    expr = expr.replace("%", "/100")  # catch any remaining %
+
 
     # ---------------- ABS ----------------
     expr = re.sub(r"absolute\s*(-?\d+(?:\.\d+)?)", r"abs(\1)", expr)
@@ -128,6 +147,14 @@ def process_expression(expr):
     # ---------------- CONSTANT MULTIPLY ----------------
     expr = re.sub(r"(\d+)\s*pi", r"(\1*math.pi)", expr)
     expr = re.sub(r"(\d+)\s*e", r"(\1*math.e)", expr)
+
+    # ---------------- IMPLICIT MULTIPLICATION ----------------
+    expr = re.sub(r"(\d)\(", r"\1*(", expr)           
+    expr = re.sub(r"\)(\d)", r")*\1", expr)           
+    expr = re.sub(r"\)\(", r")*(", expr)              
+
+    # function multiply: 2sin30 → 2*sin30
+    expr = re.sub(r"(\d)(math\.)", r"\1*\2", expr)
 
     # ---------------- OPERATORS ----------------
     expr = expr.replace(" x ", " * ")
@@ -141,7 +168,6 @@ def process_expression(expr):
     expr = re.sub(r"\s+", " ", expr)
 
     return expr
-
 
 # ---------------- CALCULATE ----------------
 
