@@ -232,9 +232,19 @@ def process_expression(expr):
     expr = re.sub(r"divide (\d+(?:\.\d+)?) by (\d+(?:\.\d+)?)", r"\1 / \2", expr)
 
     # ---------------- TRIG ----------------
-    expr = re.sub(r"\b(sin|sine)\s*(-?\d+(?:\.\d+)?)", r"math.sin(math.radians(\2))", expr)
-    expr = re.sub(r"\b(cos|cosine)\s*(-?\d+(?:\.\d+)?)", r"math.cos(math.radians(\2))", expr)
-    expr = re.sub(r"\b(tan|tangent)\s*(-?\d+(?:\.\d+)?)", r"math.tan(math.radians(\2))", expr)
+    # ---------------- TRIG (SMART DEGREE / RADIAN) ----------------
+
+    def smart_trig_replacer(match):
+        func = match.group(1)
+        value = match.group(2).strip()
+
+    # If expression contains pi or operators → radians
+        if "pi" in value or "/" in value or "(" in value:
+            return f"math.{func}({value})"
+        else:
+            return f"math.{func}(math.radians({value}))"
+
+    expr = re.sub(r"\b(sin|cos|tan)\s*([^\s]+)", smart_trig_replacer, expr)
 
     # ---------------- INVERSE TRIG ----------------
     expr = re.sub(r"asin\s*(\d+(?:\.\d+)?)", r"math.degrees(math.asin(\1))", expr)
