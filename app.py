@@ -16,7 +16,9 @@ number_words = {
     "seventeen":17,"eighteen":18,"nineteen":19,
     "twenty":20,"thirty":30,"forty":40,
     "fifty":50,"sixty":60,"seventy":70,
-    "eighty":80,"ninety":90
+    "eighty":80,"ninety":90,
+    "pi": math.pi,
+    "e": math.e
 }
 
 def convert_number_words(text):
@@ -90,6 +92,8 @@ def normalize_sentence(expr):
     # ---------------- PERCENT NLP ----------------
     expr = expr.replace("percent of", "% of")
     expr = expr.replace("percent", "%")
+    
+    expr = re.sub(r"(log\s+)+", "log ", expr)
 
     return expr.strip()
 
@@ -230,6 +234,8 @@ def process_expression(expr):
     expr = re.sub(r"subtract (\d+(?:\.\d+)?) from (\d+(?:\.\d+)?)", r"\2 - \1", expr)
     expr = re.sub(r"multiply (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?)", r"\1 * \2", expr)
     expr = re.sub(r"divide (\d+(?:\.\d+)?) by (\d+(?:\.\d+)?)", r"\1 / \2", expr)
+    
+    
 
     # ---------------- TRIG ----------------
     # ---------------- TRIG (SMART DEGREE / RADIAN) ----------------
@@ -251,9 +257,23 @@ def process_expression(expr):
     expr = re.sub(r"acos\s*(\d+(?:\.\d+)?)", r"math.degrees(math.acos(\1))", expr)
     expr = re.sub(r"atan\s*(\d+(?:\.\d+)?)", r"math.degrees(math.atan(\1))", expr)
 
-    # ---------------- LOG ----------------
-    expr = re.sub(r"\blog\s*(\d+(?:\.\d+)?)", r"math.log10(\1)", expr)
-    expr = re.sub(r"\bln\s*(\d+(?:\.\d+)?)", r"math.log(\1)", expr)
+    # # ---------------- LOG ----------------
+    # expr = re.sub(r"\blog\s*(\d+(?:\.\d+)?)", r"math.log10(\1)", expr)
+    # expr = re.sub(r"\bln\s*(\d+(?:\.\d+)?)", r"math.log(\1)", expr)
+    # # ---------------- LOG (FINAL FIX) ----------------
+
+    # Step 1: remove repeated logs safely
+    expr = re.sub(r"\blog\s+(?=log)", "", expr)
+
+    # Step 2: handle simple log numbers first
+    expr = re.sub(r"\blog\s+(\d+(?:\.\d+)?)", r"math.log10(\1)", expr)
+
+    # Step 3: handle bracket expressions log(...)
+    expr = re.sub(r"\blog\s*\(\s*(.*?)\s*\)", r"math.log10(\1)", expr)
+
+    # LN
+    expr = re.sub(r"\bln\s+(\d+(?:\.\d+)?)", r"math.log(\1)", expr)
+    expr = re.sub(r"\bln\s*\(\s*(.*?)\s*\)", r"math.log(\1)", expr)
 
     # ---------------- EXP ----------------
     expr = re.sub(r"e\s*power\s*(\d+(?:\.\d+)?)", r"math.exp(\1)", expr)
